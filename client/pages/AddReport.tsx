@@ -134,10 +134,7 @@ export default function AddReport() {
         .filter(Boolean)
         .join(" - ");
 
-      const { data: member } = user
-        ? await supabase.from("users").select("generated_id").eq("id", user.id).maybeSingle()
-        : { data: null };
-      const memberId = member?.generated_id || user?.user_metadata?.generated_id || "E0001";
+      const memberId = user?.user_metadata?.generated_id || "E0001";
       const pdfUrl = `https://hwglhastcmqgrvvxmaae.supabase.co/storage/v1/object/public/reports-pdfs/members/${memberId}/${memberId}.pdf`;
       const reportData = {
         title: formData.title,
@@ -183,11 +180,14 @@ export default function AddReport() {
         },
       });
     } catch (error: any) {
-      console.error(error);
+      console.error("Report save error:", error);
+      const message = error?.message || (typeof error === "string" ? error : JSON.stringify(error));
       toast({
         variant: "destructive",
         title: "خطأ",
-        description: error.message || "حدث خطأ أثناء إرسال التقرير.",
+        description: message === "Failed to fetch"
+          ? "تعذر الاتصال بقاعدة البيانات. تحقق من إعدادات Supabase والاتصال بالشبكة."
+          : message || "حدث خطأ أثناء إرسال التقرير.",
       });
     } finally {
       setIsSubmitting(false);
