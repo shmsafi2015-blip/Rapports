@@ -79,7 +79,7 @@ export default function ReportSuccess() {
                   {logos[1] && <img src={logos[1]} alt="الشعار الثاني" className="h-20 w-20 rounded-xl bg-white object-contain p-2 shadow-lg" />}
                 </div>
                 <div className="text-left">
-                  <p className="mb-2 text-sm font-bold tracking-[0.25em] text-violet-100">SHM • RAPPORT D’ACTIVITÉ</p>
+                  <p className="mb-2 text-sm font-bold tracking-[0.25em] text-violet-100">تقرير حصة</p>
                   <h2 className="text-3xl font-black leading-tight sm:text-4xl">تقرير حول {title}</h2>
                   <p className="mt-2 text-sm font-medium text-white/80">الكشفية الحسنية المغربية — فرع آسفي</p>
                 </div>
