@@ -126,7 +126,7 @@ export default function AddSession() {
               <span className="text-4xl">📝</span>
             </div>
             <h2 className="text-4xl font-black shm-text-gradient mb-4 uppercase tracking-wider">
-              إضافة حصة (طريقة 5W)
+              إضافة حصة
             </h2>
             <div className="w-16 h-1.5 shm-gradient mx-auto rounded-full"></div>
           </div>
