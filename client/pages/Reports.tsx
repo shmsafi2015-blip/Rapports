@@ -32,7 +32,7 @@ export default function Reports() {
       setLoading(true);
       try {
         const { data: reportsData, error: reportsError } = await supabase
-          .from("rapports")
+          .from("reports")
           .select("*")
           .order("created_at", { ascending: false });
 

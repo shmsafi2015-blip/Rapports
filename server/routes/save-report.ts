@@ -32,7 +32,7 @@ export const handleSaveReport: RequestHandler = async (req, res) => {
     ...(id ? { id } : {}),
     title,
     location,
-    date,
+    created_at: `${date}T00:00:00.000Z`,
     time,
     objective,
     participants_boys: Number(participants_boys) || 0,
@@ -50,7 +50,7 @@ export const handleSaveReport: RequestHandler = async (req, res) => {
   };
 
   const { error } = await supabaseAdmin
-    .from("rapports")
+    .from("reports")
     .upsert(report, { onConflict: "id" });
 
   if (error) {
