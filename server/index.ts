@@ -1,7 +1,6 @@
 import "dotenv/config";
 import express from "express";
 import cors from "cors";
-import { handleDemo } from "./routes/demo";
 import { handleGenerateSession } from "./routes/generate-session";
 import { handleSaveReport } from "./routes/save-report";
 import { handleListReports } from "./routes/list-reports";
@@ -20,7 +19,6 @@ export function createServer() {
     res.json({ message: ping });
   });
 
-  app.get("/api/demo", handleDemo);
   app.post("/api/generate-session", handleGenerateSession);
   app.post("/api/save-report", handleSaveReport);
   app.get("/api/reports", handleListReports);
