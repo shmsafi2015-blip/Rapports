@@ -33,39 +33,30 @@ export default function ReportSuccess() {
   const downloadPdf = async () => {
     if (!reportRef.current) return;
     setIsExporting(true);
+    const reportElement = reportRef.current;
+    const originalWidth = reportElement.style.width;
+    const originalTransform = reportElement.style.transform;
+    const originalTransformOrigin = reportElement.style.transformOrigin;
+
     try {
-      const canvas = await html2canvas(reportRef.current, {
-        scale: 2,
+      reportElement.style.width = "794px";
+      reportElement.style.transform = "scale(0.75)";
+      reportElement.style.transformOrigin = "top left";
+      await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+
+      const canvas = await html2canvas(reportElement, {
+        scale: 1.5,
         useCORS: true,
-        backgroundColor: "#f8fafc",
+        backgroundColor: "#ffffff",
+        windowWidth: 794,
       });
       const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
-      const pageWidth = 210;
-      const pageHeight = 297;
-      const pageHeightInCanvas = Math.floor((pageHeight / pageWidth) * canvas.width);
-      let sourceY = 0;
-      let pageIndex = 0;
-
-      while (sourceY < canvas.height) {
-        const sliceHeight = Math.min(pageHeightInCanvas, canvas.height - sourceY);
-        const pageCanvas = document.createElement("canvas");
-        pageCanvas.width = canvas.width;
-        pageCanvas.height = sliceHeight;
-        const context = pageCanvas.getContext("2d");
-        if (!context) throw new Error("Unable to prepare PDF page");
-        context.fillStyle = "#ffffff";
-        context.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
-        context.drawImage(canvas, 0, sourceY, canvas.width, sliceHeight, 0, 0, canvas.width, sliceHeight);
-
-        if (pageIndex > 0) pdf.addPage();
-        const sliceHeightInMm = (sliceHeight * pageWidth) / canvas.width;
-        pdf.addImage(pageCanvas.toDataURL("image/png"), "PNG", 0, 0, pageWidth, sliceHeightInMm, undefined, "FAST");
-        sourceY += sliceHeight;
-        pageIndex += 1;
-      }
-
+      pdf.addImage(canvas.toDataURL("image/png"), "PNG", 0, 0, 210, 297, undefined, "FAST");
       pdf.save(`${title.replace(/\s+/g, "-") || "rapport"}.pdf`);
     } finally {
+      reportElement.style.width = originalWidth;
+      reportElement.style.transform = originalTransform;
+      reportElement.style.transformOrigin = originalTransformOrigin;
       setIsExporting(false);
     }
   };
@@ -89,42 +80,42 @@ export default function ReportSuccess() {
           </Button>
         </div>
 
-        <div ref={reportRef} dir="rtl" className="overflow-hidden rounded-[2rem] border border-slate-200 bg-slate-50 p-4 shadow-xl sm:p-8">
-          <article className="mx-auto max-w-4xl overflow-hidden rounded-2xl bg-white shadow-sm">
-            <header className="relative overflow-hidden bg-gradient-to-l from-[#7f1d3f] via-[#9d174d] to-[#5b2a86] px-6 py-10 text-white sm:px-12">
-              <div className="absolute -left-16 -top-20 h-52 w-52 rounded-full border-[20px] border-white/10" />
-              <div className="relative flex items-center justify-between gap-5">
-                <div className="flex items-center gap-3">
-                  {logos[0] ? <img src={logos[0]} alt="الشعار" className="h-20 w-20 rounded-xl bg-white object-contain p-2 shadow-lg" /> : <div className="h-20 w-20 rounded-xl border border-white/30" />}
-                  {logos[1] && <img src={logos[1]} alt="الشعار الثاني" className="h-20 w-20 rounded-xl bg-white object-contain p-2 shadow-lg" />}
+        <div ref={reportRef} dir="rtl" className="overflow-hidden rounded-[2rem] border border-slate-200 bg-white p-4 shadow-xl sm:p-8">
+          <article className="mx-auto max-w-4xl overflow-hidden bg-white" style={{ pageBreakInside: "avoid" }}>
+            <header className="px-6 py-6 text-center text-slate-900 sm:px-12">
+              <div className="mb-5 h-1 bg-[#8B0000]" />
+              <div className="flex items-center justify-center gap-5">
+                {logos[0] ? <img src={logos[0]} alt="الشعار الأيمن" className="h-20 w-20 object-contain" /> : <div className="h-20 w-20" />}
+                <div className="min-w-0 flex-1 text-center leading-8">
+                  <p className="text-xl font-black">الكشفية الحسنية المغربية</p>
+                  <p className="text-base">فرع آسفي مجموعة الأمل</p>
+                  <p className="text-base">فوج عمر الفاروق</p>
                 </div>
-                <div className="text-left">
-                  <p className="mb-2 text-sm font-bold tracking-[0.25em] text-violet-100">تقرير حصة</p>
-                  <h2 className="text-3xl font-black leading-tight sm:text-4xl">تقرير حول {title}</h2>
-                  <p className="mt-2 text-sm font-medium text-white/80">الكشفية الحسنية المغربية — فرع آسفي</p>
-                </div>
+                {logos[1] ? <img src={logos[1]} alt="الشعار الأيسر" className="h-20 w-20 object-contain" /> : <div className="h-20 w-20" />}
               </div>
+              <div className="mt-5 h-1 bg-[#8B0000]" />
+              <h2 className="mt-7 text-2xl font-black">تقرير حول: {title}</h2>
             </header>
 
-            <div className="space-y-8 p-6 sm:p-12">
-              <div className="overflow-hidden rounded-2xl border border-slate-200">
+            <div className="px-6 pb-8 sm:px-12">
+              <div className="overflow-hidden border border-[#d8c9a9]" style={{ pageBreakInside: "avoid" }}>
                 <table className="w-full border-collapse text-right">
                   <tbody>
-                    <TableRow label="التاريخ" value={valueOf(report, "date")} />
-                    <TableRow label="المكان" value={valueOf(report, "location")} />
-                    <TableRow label="الوقت" value={valueOf(report, "time")} />
                     <TableRow label="الفئة المستهدفة" value={valueOf(report, "beneficiary")} />
-                    <TableRow label="الأهداف" value={valueOf(report, "objective")} />
-                    <TableRow label="سير الجلسة" value={valueOf(report, "description")} />
-                    <TableRow label="النقط الإيجابية" value={valueOf(report, "evaluationPositive")} accent="rose" />
-                    <TableRow label="النقط السلبية" value={valueOf(report, "evaluationNegative")} accent="violet" />
+                    <TableRow label="المكان" value={valueOf(report, "location")} />
+                    <TableRow label="الزمان" value={valueOf(report, "time")} />
+                    <TableRow label="الجهة المنظمة" value={valueOf(report, "category")} />
+                    <TableRow label="عدد المشاركين" value={`${valueOf(report, "participants_boys", "0")} ذكور | ${valueOf(report, "participants_girls", "0")} إناث | ${valueOf(report, "leaders_count", "0")} قادة`} />
+                    <TableRow label="الهدف من النشاط" value={valueOf(report, "objective")} />
+                    <TableRow label="سير النشاط" value={valueOf(report, "description")} />
+                    <TableRow label="النقاط الإيجابية" value={valueOf(report, "evaluationPositive")} />
+                    <TableRow label="النقاط السلبية" value={valueOf(report, "evaluationNegative")} />
                     <TableRow label="التوصيات" value={valueOf(report, "recommendations")} />
                   </tbody>
                 </table>
               </div>
-
-              <footer className="border-t border-slate-100 pt-5 text-center text-xs font-bold text-slate-400">
-                حرر بتاريخ {new Date().toLocaleDateString("ar-MA")} • وثيقة داخلية
+              <footer className="mt-6 border-t border-slate-200 pt-5 text-center text-xs font-bold text-slate-400" style={{ pageBreakInside: "avoid" }}>
+                تم إنشاء هذا التقرير بواسطة نظام إدارة التقارير - الكشفية الحسنية المغربية
               </footer>
             </div>
           </article>
@@ -139,12 +130,11 @@ export default function ReportSuccess() {
   );
 }
 
-function TableRow({ label, value, accent = "violet" }: { label: string; value: string; accent?: "rose" | "violet" }) {
-  const labelColor = accent === "rose" ? "bg-rose-50 text-[#8b1e3f]" : "bg-violet-50 text-[#5b2a86]";
+function TableRow({ label, value }: { label: string; value: string }) {
   return (
-    <tr className="border-b border-slate-200 last:border-b-0">
-      <th className={`w-1/3 px-4 py-4 align-top text-sm font-black sm:w-1/4 ${labelColor}`}>{label}</th>
-      <td className="whitespace-pre-wrap px-4 py-4 text-sm font-medium leading-7 text-slate-700">{value}</td>
+    <tr className="border-b border-[#d8c9a9] last:border-b-0" style={{ pageBreakInside: "avoid" }}>
+      <th className="w-1/3 bg-[#f5e6c8] px-4 py-3 align-middle text-sm font-black text-[#5f4a2b] sm:w-1/4">{label}</th>
+      <td className="whitespace-pre-wrap bg-white px-4 py-3 text-center text-sm font-medium leading-7 text-slate-700">{value}</td>
     </tr>
   );
 }
