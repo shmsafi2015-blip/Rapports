@@ -76,31 +76,63 @@ export const handleGenerateReport: RequestHandler = async (req, res) => {
     await ensureBucketExists("shm-reports");
 
     // Process logos and upload to storage
-    const logoUrls: string[] = [];
     const logoBuffers: { data: Buffer; type: string }[] = [];
-    for (const logo of (logos as any[]).slice(0, 3)) {
+    let logoLeftUrl: string | null = null;
+    let logoRightUrl: string | null = null;
+
+    const logosArray = (logos as any[]).slice(0, 3);
+
+    // Upload LOGO GAUCHE (index 0)
+    if (logosArray[0]) {
       try {
-        const buffer = Buffer.from(logo.data, 'base64');
-        logoBuffers.push({ data: buffer, type: logo.type });
+        const buffer = Buffer.from(logosArray[0].data, 'base64');
+        logoBuffers.push({ data: buffer, type: logosArray[0].type });
 
-        const fileName = `logo_${Date.now()}_${logo.name}`;
-        const { data, error } = await supabaseAdmin.storage
+        const logoLeftFileName = `logos/left-${Date.now()}-${Math.random().toString(36).substr(2, 9)}.png`;
+        const { error: logoLeftError } = await supabaseAdmin.storage
           .from("shm-reports")
-          .upload(`logos/${fileName}`, buffer, {
-            contentType: logo.type,
-            upsert: true
-          });
+          .upload(logoLeftFileName, buffer, { contentType: "image/png" });
 
-        if (data) {
-          const { data: { publicUrl } } = supabaseAdmin.storage
+        if (!logoLeftError) {
+          const { data: { publicUrl: leftUrl } } = supabaseAdmin.storage
             .from("shm-reports")
-            .getPublicUrl(`logos/${fileName}`);
-          logoUrls.push(publicUrl);
+            .getPublicUrl(logoLeftFileName);
+          logoLeftUrl = leftUrl;
+          console.log("Logo Left uploaded:", logoLeftUrl);
         }
-      } catch (e) {
-        console.error("Logo Upload Error:", e);
+      } catch (err) {
+        console.error("Logo Left Upload Error:", err);
       }
     }
+
+    // Upload LOGO DROITE (index 1)
+    if (logosArray[1]) {
+      try {
+        const buffer = Buffer.from(logosArray[1].data, 'base64');
+        logoBuffers.push({ data: buffer, type: logosArray[1].type });
+
+        const logoRightFileName = `logos/right-${Date.now()}-${Math.random().toString(36).substr(2, 9)}.png`;
+        const { error: logoRightError } = await supabaseAdmin.storage
+          .from("shm-reports")
+          .upload(logoRightFileName, buffer, { contentType: "image/png" });
+
+        if (!logoRightError) {
+          const { data: { publicUrl: rightUrl } } = supabaseAdmin.storage
+            .from("shm-reports")
+            .getPublicUrl(logoRightFileName);
+          logoRightUrl = rightUrl;
+          console.log("Logo Right uploaded:", logoRightUrl);
+        }
+      } catch (err) {
+        console.error("Logo Right Upload Error:", err);
+      }
+    }
+
+    // Combiner les logos pour unit_logo (JSON avec left/right)
+    const unitLogoData = JSON.stringify({
+      left: logoLeftUrl,
+      right: logoRightUrl,
+    });
 
     const doc = new PDFDocument({ margin: 50, layout: "portrait" });
     const buffers: Buffer[] = [];
@@ -127,6 +159,12 @@ export const handleGenerateReport: RequestHandler = async (req, res) => {
           .from("shm-reports")
           .getPublicUrl(fileName);
 
+        if (!publicUrl) {
+          console.error("PDF URL not generated");
+          res.status(500).json({ error: "PDF URL not generated" });
+          return resolve(null);
+        }
+
         const { error: dbError } = await supabaseAdmin
           .from("reports")
           .insert({
@@ -145,11 +183,12 @@ export const handleGenerateReport: RequestHandler = async (req, res) => {
             evaluation_negative: evaluationNegative,
             recommendations,
             pdf_url: publicUrl,
+            unit_logo: unitLogoData,
           });
 
         if (dbError) {
-          console.error("DB Error:", dbError);
-          res.status(500).json({ error: "Failed to save report data" });
+          console.error("DB Insert Error:", dbError);
+          res.status(500).json({ error: "Failed to save report", details: dbError });
           return resolve(null);
         }
 
