@@ -39,11 +39,31 @@ export default function ReportSuccess() {
         useCORS: true,
         backgroundColor: "#f8fafc",
       });
-      const image = canvas.toDataURL("image/png");
       const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
-      const width = 210;
-      const height = (canvas.height * width) / canvas.width;
-      pdf.addImage(image, "PNG", 0, 0, width, height, undefined, "FAST");
+      const pageWidth = 210;
+      const pageHeight = 297;
+      const pageHeightInCanvas = Math.floor((pageHeight / pageWidth) * canvas.width);
+      let sourceY = 0;
+      let pageIndex = 0;
+
+      while (sourceY < canvas.height) {
+        const sliceHeight = Math.min(pageHeightInCanvas, canvas.height - sourceY);
+        const pageCanvas = document.createElement("canvas");
+        pageCanvas.width = canvas.width;
+        pageCanvas.height = sliceHeight;
+        const context = pageCanvas.getContext("2d");
+        if (!context) throw new Error("Unable to prepare PDF page");
+        context.fillStyle = "#ffffff";
+        context.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
+        context.drawImage(canvas, 0, sourceY, canvas.width, sliceHeight, 0, 0, canvas.width, sliceHeight);
+
+        if (pageIndex > 0) pdf.addPage();
+        const sliceHeightInMm = (sliceHeight * pageWidth) / canvas.width;
+        pdf.addImage(pageCanvas.toDataURL("image/png"), "PNG", 0, 0, pageWidth, sliceHeightInMm, undefined, "FAST");
+        sourceY += sliceHeight;
+        pageIndex += 1;
+      }
+
       pdf.save(`${title.replace(/\s+/g, "-") || "rapport"}.pdf`);
     } finally {
       setIsExporting(false);
