@@ -31,10 +31,12 @@ export default function Reports() {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const { data: reportsData } = await supabase
-          .from("reports")
+        const { data: reportsData, error: reportsError } = await supabase
+          .from("rapports")
           .select("*")
           .order("created_at", { ascending: false });
+
+        if (reportsError) throw reportsError;
         
         const { data: sessionsData } = await supabase
           .from("sessions")

@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import Layout from "@/components/Layout";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 import { X, Upload, Image as ImageIcon } from "lucide-react";
 
@@ -16,6 +17,7 @@ const CATEGORIES = [
 export default function AddReport() {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
@@ -131,33 +133,41 @@ export default function AddReport() {
         .filter(Boolean)
         .join(" - ");
 
-      const payload = {
+      const { data: member } = user
+        ? await supabase.from("users").select("generated_id").eq("id", user.id).maybeSingle()
+        : { data: null };
+      const memberId = member?.generated_id || user?.user_metadata?.generated_id || "E0001";
+      const pdfUrl = `https://hwglhastcmqgrvvxmaae.supabase.co/storage/v1/object/public/reports-pdfs/members/${memberId}/${memberId}.pdf`;
+      const reportData = {
         ...formData,
         category: organizingCategoryLabels,
         beneficiary: targetCategoryLabels,
-        logos: logosData,
+        pdf_url: pdfUrl,
+        unit_logo: JSON.stringify(logosData.map((logo) => `data:${logo.type};base64,${logo.data}`)),
+        member_id: memberId,
+        created_by: user?.id,
       };
 
-      const response = await fetch("/api/generate-report", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      });
+      const { data: savedReport, error } = await supabase
+        .from("rapports")
+        .upsert(reportData, { onConflict: "id" })
+        .select()
+        .single();
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Erreur lors de la génération du rapport");
-      }
-
-      const data = await response.json();
+      if (error) throw error;
 
       toast({
         title: "تم بنجاح",
-        description: "تم إنشاء التقرير وحفظه بنجاح.",
+        description: "تم حفظ التقرير بنجاح.",
       });
-      navigate("/report-success", { state: { pdfUrl: data.pdfUrl, title: formData.title } });
+      navigate("/report-success", {
+        state: {
+          report: savedReport || reportData,
+          pdfUrl,
+          title: formData.title,
+          logos: logosData.map((logo) => `data:${logo.type};base64,${logo.data}`),
+        },
+      });
     } catch (error: any) {
       console.error(error);
       toast({

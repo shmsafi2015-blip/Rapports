@@ -2,7 +2,6 @@ import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import { handleDemo } from "./routes/demo";
-import { handleGenerateReport } from "./routes/generate-report";
 import { handleGenerateSession } from "./routes/generate-session";
 
 export function createServer() {
@@ -20,7 +19,6 @@ export function createServer() {
   });
 
   app.get("/api/demo", handleDemo);
-  app.post("/api/generate-report", handleGenerateReport);
   app.post("/api/generate-session", handleGenerateSession);
 
   return app;
