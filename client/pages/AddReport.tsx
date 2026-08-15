@@ -2,7 +2,6 @@ import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import Layout from "@/components/Layout";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 import { X, Upload, Image as ImageIcon } from "lucide-react";
@@ -156,11 +155,13 @@ export default function AddReport() {
         unit_logo: JSON.stringify(logosData.map((logo) => `data:${logo.type};base64,${logo.data}`)),
       };
 
-      const { error } = await supabase
-        .from("rapports")
-        .upsert(reportData, { onConflict: "id" });
-
-      if (error) throw error;
+      const response = await fetch("/api/save-report", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(reportData),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "تعذر حفظ التقرير");
 
       toast({
         title: "تم بنجاح",
