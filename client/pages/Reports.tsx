@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import Layout from "@/components/Layout";
-import { supabase } from "@/lib/supabase";
 
 interface Report {
   id: string;
@@ -31,22 +30,16 @@ export default function Reports() {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const { data: reportsData, error: reportsError } = await supabase
-          .from("reports")
-          .select("*")
-          .order("created_at", { ascending: false });
+        const response = await fetch("/api/reports");
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || "تعذر تحميل التقارير");
 
-        if (reportsError) throw reportsError;
-        
-        const { data: sessionsData } = await supabase
-          .from("sessions")
-          .select("*")
-          .order("created_at", { ascending: false });
-
-        setReports(reportsData || []);
-        setSessions(sessionsData || []);
-      } catch (error) {
+        setReports(result.reports || []);
+        setSessions(result.sessions || []);
+      } catch (error: any) {
         console.error("Error fetching data:", error);
+        const message = error?.message || (typeof error === "string" ? error : JSON.stringify(error));
+        console.error("Reports listing details:", message);
       } finally {
         setLoading(false);
       }
