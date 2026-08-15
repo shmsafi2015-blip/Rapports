@@ -99,7 +99,7 @@ export default function ReportSuccess() {
 
             <div className="px-6 pb-8 sm:px-12">
               <div className="overflow-hidden border border-[#d8c9a9]" style={{ pageBreakInside: "avoid" }}>
-                <table className="w-full border-collapse text-right">
+                <table className="w-full table-auto border-collapse text-right">
                   <tbody>
                     <TableRow label="الفئة المستهدفة" value={valueOf(report, "beneficiary")} />
                     <TableRow label="المكان" value={valueOf(report, "location")} />
@@ -133,8 +133,8 @@ export default function ReportSuccess() {
 function TableRow({ label, value }: { label: string; value: string }) {
   return (
     <tr className="border-b border-[#d8c9a9] last:border-b-0" style={{ pageBreakInside: "avoid" }}>
-      <th className="w-1/3 bg-[#f5e6c8] px-4 py-3 align-middle text-sm font-black text-[#5f4a2b] sm:w-1/4">{label}</th>
-      <td className="whitespace-pre-wrap bg-white px-4 py-3 text-center text-sm font-medium leading-7 text-slate-700">{value}</td>
+      <th className="whitespace-nowrap bg-[#f5e6c8] px-4 py-3 align-middle text-sm font-black text-[#5f4a2b]">{label}</th>
+      <td className="whitespace-pre-wrap break-words bg-white px-4 py-3 text-center text-sm font-medium leading-7 text-slate-700" style={{ overflowWrap: "anywhere" }}>{value}</td>
     </tr>
   );
 }
