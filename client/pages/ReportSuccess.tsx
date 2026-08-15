@@ -87,7 +87,8 @@ export default function ReportSuccess() {
             </header>
 
             <div className="space-y-8 p-6 sm:p-12">
-              <section className="grid gap-4 sm:grid-cols-3">
+                <section className="grid gap-4 sm:grid-cols-4">
+                <InfoCard icon={<span className="text-lg">▣</span>} label="التاريخ" value={valueOf(report, "date")} />
                 <InfoCard icon={<MapPin size={18} />} label="المكان" value={valueOf(report, "location")} />
                 <InfoCard icon={<span className="text-lg">◷</span>} label="الوقت" value={valueOf(report, "time")} />
                 <InfoCard icon={<Users size={18} />} label="الفئة المستهدفة" value={valueOf(report, "beneficiary")} />

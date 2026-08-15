@@ -24,6 +24,7 @@ export default function AddReport() {
   const [formData, setFormData] = useState({
     title: "",
     location: "",
+    date: "",
     time: "",
     objective: "",
     boysCount: 0,
@@ -139,20 +140,28 @@ export default function AddReport() {
       const memberId = member?.generated_id || user?.user_metadata?.generated_id || "E0001";
       const pdfUrl = `https://hwglhastcmqgrvvxmaae.supabase.co/storage/v1/object/public/reports-pdfs/members/${memberId}/${memberId}.pdf`;
       const reportData = {
-        ...formData,
+        title: formData.title,
+        location: formData.location,
+        date: formData.date,
+        time: formData.time,
+        objective: formData.objective,
+        participants_boys: Number(formData.boysCount),
+        participants_girls: Number(formData.girlsCount),
+        leaders_count: Number(formData.leadersCount),
         category: organizingCategoryLabels,
         beneficiary: targetCategoryLabels,
+        description_original: formData.description,
+        description_reformulated: formData.description,
+        evaluation_positive: formData.evaluationPositive,
+        evaluation_negative: formData.evaluationNegative,
+        recommendations: formData.recommendations,
         pdf_url: pdfUrl,
         unit_logo: JSON.stringify(logosData.map((logo) => `data:${logo.type};base64,${logo.data}`)),
-        member_id: memberId,
-        created_by: user?.id,
       };
 
-      const { data: savedReport, error } = await supabase
+      const { error } = await supabase
         .from("rapports")
-        .upsert(reportData, { onConflict: "id" })
-        .select()
-        .single();
+        .upsert(reportData, { onConflict: "id" });
 
       if (error) throw error;
 
@@ -162,7 +171,12 @@ export default function AddReport() {
       });
       navigate("/report-success", {
         state: {
-          report: savedReport || reportData,
+          report: {
+            ...reportData,
+            description: formData.description,
+            evaluationPositive: formData.evaluationPositive,
+            evaluationNegative: formData.evaluationNegative,
+          },
           pdfUrl,
           title: formData.title,
           logos: logosData.map((logo) => `data:${logo.type};base64,${logo.data}`),
@@ -264,6 +278,17 @@ export default function AddReport() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="space-y-2">
+                <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mr-1">التاريخ</label>
+                <input
+                  type="date"
+                  name="date"
+                  required
+                  value={formData.date}
+                  onChange={handleChange}
+                  className="w-full px-5 py-4 bg-gray-50 border-2 border-transparent focus:bg-white focus:border-primary/20 rounded-2xl focus:outline-none focus:ring-4 focus:ring-primary/5 transition-all font-bold"
+                />
+              </div>
               <div className="space-y-2">
                 <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mr-1">الوقت</label>
                 <input
