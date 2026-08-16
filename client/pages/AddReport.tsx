@@ -2,7 +2,6 @@ import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import Layout from "@/components/Layout";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 import { X, Upload, Image as ImageIcon } from "lucide-react";
 
@@ -16,7 +15,6 @@ const CATEGORIES = [
 export default function AddReport() {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { user } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
@@ -142,13 +140,10 @@ export default function AddReport() {
         .filter(Boolean)
         .join(" - ");
 
-      const storedReportUserId = localStorage.getItem("report-user-id");
-      const reportUserId = user?.id || storedReportUserId || crypto.randomUUID();
-      if (!user?.id && !storedReportUserId) {
-        localStorage.setItem("report-user-id", reportUserId);
-      }
-      const pdfUrl = `https://hwglhastcmqgrvvxmaae.supabase.co/storage/v1/object/public/reports-pdfs/members/${reportUserId}/${reportUserId}.pdf`;
+      const reportId = crypto.randomUUID();
+      const pdfUrl = `https://hwglhastcmqgrvvxmaae.supabase.co/storage/v1/object/public/reports-pdfs/reports/${reportId}/${reportId}.pdf`;
       const reportData = {
+        id: reportId,
         title: formData.title.trim(),
         location: formData.location,
         date: formData.date,
