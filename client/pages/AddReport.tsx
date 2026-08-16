@@ -94,15 +94,6 @@ export default function AddReport() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.title.trim() || !formData.date) {
-      toast({
-        variant: "destructive",
-        title: "خطأ",
-        description: "يرجى إدخال عنوان التقرير وتاريخه.",
-      });
-      return;
-    }
-
     if (selectedOrganizingCategories.length === 0 || selectedTargetCategories.length === 0) {
       toast({
         variant: "destructive",
@@ -267,7 +258,6 @@ export default function AddReport() {
                 <input
                   type="text"
                   name="title"
-                  required
                   value={formData.title}
                   onChange={handleChange}
                   className="w-full px-5 py-4 bg-gray-50 border-2 border-transparent focus:bg-white focus:border-primary/20 rounded-2xl focus:outline-none focus:ring-4 focus:ring-primary/5 transition-all font-bold"
@@ -292,7 +282,6 @@ export default function AddReport() {
                 <input
                   type="date"
                   name="date"
-                  required
                   value={formData.date}
                   onChange={handleChange}
                   className="w-full px-5 py-4 bg-gray-50 border-2 border-transparent focus:bg-white focus:border-primary/20 rounded-2xl focus:outline-none focus:ring-4 focus:ring-primary/5 transition-all font-bold"

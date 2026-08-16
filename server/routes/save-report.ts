@@ -26,16 +26,11 @@ export const handleSaveReport: RequestHandler = async (req, res) => {
     unit_logo,
   } = payload || {};
 
-  if (typeof title !== "string" || !title.trim() || typeof date !== "string" || !date.trim()) {
-    res.status(400).json({ error: "title and date are required" });
-    return;
-  }
-
   const report = {
     ...(id ? { id } : {}),
-    title,
+    ...(typeof title === "string" && title.trim() ? { title: title.trim() } : {}),
     location,
-    created_at: `${date}T00:00:00.000Z`,
+    ...(typeof date === "string" && date.trim() ? { created_at: `${date}T00:00:00.000Z` } : {}),
     time,
     objective,
     participants_boys: Number(participants_boys) || 0,
