@@ -28,9 +28,11 @@ export const handleSaveReport: RequestHandler = async (req, res) => {
 
   const report = {
     ...(id ? { id } : {}),
-    ...(typeof title === "string" && title.trim() ? { title: title.trim() } : {}),
+    title: typeof title === "string" && title.trim() ? title.trim() : "Sans titre",
     location,
-    ...(typeof date === "string" && date.trim() ? { created_at: `${date}T00:00:00.000Z` } : {}),
+    created_at: typeof date === "string" && date.trim()
+      ? `${date}T00:00:00.000Z`
+      : new Date().toISOString(),
     time,
     objective,
     participants_boys: Number(participants_boys) || 0,
