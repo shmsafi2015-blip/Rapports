@@ -10,7 +10,7 @@ export function createServer() {
 
   // Middleware
   app.use(cors());
-  app.use(express.json({ limit: "50mb" }));
+  app.use(express.json({ limit: "50mb", type: "*/*" }));
   app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 
   // Example API routes
