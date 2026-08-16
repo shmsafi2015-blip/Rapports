@@ -52,19 +52,6 @@ export default function Dashboard() {
           </button>
         </div>
 
-        <div className="pt-12 flex items-center gap-6 opacity-40">
-           <img 
-              src="https://cdn.builder.io/api/v1/image/assets%2Fd8cf247061ae4e73b8c8529275e40675%2F1e55c030693d429b8a71a3a705492b5e?format=webp&width=800&height=1200" 
-              alt="Logo SHM" 
-              className="w-12 h-12 grayscale"
-            />
-            <div className="w-1 h-12 bg-gray-300 rounded-full"></div>
-            <img 
-              src="https://cdn.builder.io/api/v1/image/assets%2Fd8cf247061ae4e73b8c8529275e40675%2F1850b5e832b4437a9da2e8ba900aa4ce?format=webp&width=800&height=1200" 
-              alt="Logo 2 SHM" 
-              className="w-12 h-12 grayscale"
-            />
-        </div>
       </div>
     </Layout>
   );
