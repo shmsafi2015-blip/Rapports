@@ -96,6 +96,15 @@ export default function AddReport() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!formData.title.trim() || !formData.date) {
+      toast({
+        variant: "destructive",
+        title: "خطأ",
+        description: "يرجى إدخال عنوان التقرير وتاريخه.",
+      });
+      return;
+    }
+
     if (selectedOrganizingCategories.length === 0 || selectedTargetCategories.length === 0) {
       toast({
         variant: "destructive",
@@ -136,7 +145,7 @@ export default function AddReport() {
       const memberId = user?.user_metadata?.generated_id || "E0001";
       const pdfUrl = `https://hwglhastcmqgrvvxmaae.supabase.co/storage/v1/object/public/reports-pdfs/members/${memberId}/${memberId}.pdf`;
       const reportData = {
-        title: formData.title,
+        title: formData.title.trim(),
         location: formData.location,
         date: formData.date,
         time: formData.time,
