@@ -6,7 +6,7 @@ interface Report {
   title: string;
   location: string;
   time: string;
-  pdf_url: string;
+  pdf_url?: string;
   created_at: string;
 }
 
@@ -101,14 +101,20 @@ export default function Reports() {
                     <p className="flex items-center gap-2">🕒 {report.time}</p>
                     <p className="flex items-center gap-2">📅 {new Date(report.created_at).toLocaleDateString("ar-MA")}</p>
                   </div>
-                  <a
-                    href={report.pdf_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center justify-center w-full shm-gradient text-white px-6 py-4 rounded-xl text-xs font-black uppercase tracking-widest shm-gradient-hover shadow-lg shadow-primary/10"
-                  >
-                    عرض ملف PDF
-                  </a>
+                  {report.pdf_url ? (
+                    <a
+                      href={report.pdf_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-center w-full shm-gradient text-white px-6 py-4 rounded-xl text-xs font-black uppercase tracking-widest shm-gradient-hover shadow-lg shadow-primary/10"
+                    >
+                      عرض ملف PDF
+                    </a>
+                  ) : (
+                    <div className="flex items-center justify-center w-full rounded-xl bg-gray-100 px-6 py-4 text-xs font-black text-gray-400">
+                      PDF غير متوفر بعد
+                    </div>
+                  )}
                 </div>
               ))
             ) : (

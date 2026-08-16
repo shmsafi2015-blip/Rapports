@@ -26,8 +26,8 @@ export const handleSaveReport: RequestHandler = async (req, res) => {
     unit_logo,
   } = payload || {};
 
-  if (typeof title !== "string" || !title.trim() || typeof date !== "string" || !date.trim() || typeof pdf_url !== "string" || !pdf_url.trim()) {
-    res.status(400).json({ error: "title, date and pdf_url are required" });
+  if (typeof title !== "string" || !title.trim() || typeof date !== "string" || !date.trim()) {
+    res.status(400).json({ error: "title and date are required" });
     return;
   }
 
@@ -48,7 +48,7 @@ export const handleSaveReport: RequestHandler = async (req, res) => {
     evaluation_positive,
     evaluation_negative,
     recommendations,
-    pdf_url,
+    ...(typeof pdf_url === "string" && pdf_url.trim() ? { pdf_url } : {}),
     unit_logo,
   };
 
