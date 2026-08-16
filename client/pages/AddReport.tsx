@@ -142,8 +142,12 @@ export default function AddReport() {
         .filter(Boolean)
         .join(" - ");
 
-      const memberId = user?.user_metadata?.generated_id || "E0001";
-      const pdfUrl = `https://hwglhastcmqgrvvxmaae.supabase.co/storage/v1/object/public/reports-pdfs/members/${memberId}/${memberId}.pdf`;
+      const storedReportUserId = localStorage.getItem("report-user-id");
+      const reportUserId = user?.id || storedReportUserId || crypto.randomUUID();
+      if (!user?.id && !storedReportUserId) {
+        localStorage.setItem("report-user-id", reportUserId);
+      }
+      const pdfUrl = `https://hwglhastcmqgrvvxmaae.supabase.co/storage/v1/object/public/reports-pdfs/members/${reportUserId}/${reportUserId}.pdf`;
       const reportData = {
         title: formData.title.trim(),
         location: formData.location,
