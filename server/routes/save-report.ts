@@ -2,6 +2,9 @@ import { RequestHandler } from "express";
 import { supabaseAdmin } from "../lib/supabase";
 
 export const handleSaveReport: RequestHandler = async (req, res) => {
+  const payload = req.body?.body && typeof req.body.body === "object"
+    ? req.body.body
+    : req.body;
   const {
     id,
     title,
@@ -21,18 +24,15 @@ export const handleSaveReport: RequestHandler = async (req, res) => {
     recommendations,
     pdf_url,
     unit_logo,
-  } = req.body;
-
-  if (!title || !date || !pdf_url) {
-    res.status(400).json({ error: "title, date and pdf_url are required" });
-    return;
-  }
+  } = payload || {};
 
   const report = {
     ...(id ? { id } : {}),
-    title,
+    title: typeof title === "string" && title.trim() ? title.trim() : "Sans titre",
     location,
-    created_at: `${date}T00:00:00.000Z`,
+    created_at: typeof date === "string" && date.trim()
+      ? `${date}T00:00:00.000Z`
+      : new Date().toISOString(),
     time,
     objective,
     participants_boys: Number(participants_boys) || 0,
@@ -45,7 +45,7 @@ export const handleSaveReport: RequestHandler = async (req, res) => {
     evaluation_positive,
     evaluation_negative,
     recommendations,
-    pdf_url,
+    ...(typeof pdf_url === "string" && pdf_url.trim() ? { pdf_url } : {}),
     unit_logo,
   };
 

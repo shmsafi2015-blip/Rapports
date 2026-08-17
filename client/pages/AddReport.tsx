@@ -2,7 +2,6 @@ import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import Layout from "@/components/Layout";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 import { X, Upload, Image as ImageIcon } from "lucide-react";
 
@@ -16,7 +15,6 @@ const CATEGORIES = [
 export default function AddReport() {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { user } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
@@ -133,10 +131,11 @@ export default function AddReport() {
         .filter(Boolean)
         .join(" - ");
 
-      const memberId = user?.user_metadata?.generated_id || "E0001";
-      const pdfUrl = `https://hwglhastcmqgrvvxmaae.supabase.co/storage/v1/object/public/reports-pdfs/members/${memberId}/${memberId}.pdf`;
+      const reportId = crypto.randomUUID();
+      const pdfUrl = `https://hwglhastcmqgrvvxmaae.supabase.co/storage/v1/object/public/reports-pdfs/reports/${reportId}/${reportId}.pdf`;
       const reportData = {
-        title: formData.title,
+        id: reportId,
+        title: formData.title.trim(),
         location: formData.location,
         date: formData.date,
         time: formData.time,
@@ -259,7 +258,6 @@ export default function AddReport() {
                 <input
                   type="text"
                   name="title"
-                  required
                   value={formData.title}
                   onChange={handleChange}
                   className="w-full px-5 py-4 bg-gray-50 border-2 border-transparent focus:bg-white focus:border-primary/20 rounded-2xl focus:outline-none focus:ring-4 focus:ring-primary/5 transition-all font-bold"
@@ -284,7 +282,6 @@ export default function AddReport() {
                 <input
                   type="date"
                   name="date"
-                  required
                   value={formData.date}
                   onChange={handleChange}
                   className="w-full px-5 py-4 bg-gray-50 border-2 border-transparent focus:bg-white focus:border-primary/20 rounded-2xl focus:outline-none focus:ring-4 focus:ring-primary/5 transition-all font-bold"
