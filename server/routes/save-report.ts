@@ -2,9 +2,23 @@ import { RequestHandler } from "express";
 import { supabaseAdmin } from "../lib/supabase";
 
 export const handleSaveReport: RequestHandler = async (req, res) => {
-  const payload = req.body?.body && typeof req.body.body === "object"
-    ? req.body.body
-    : req.body;
+  const parsePayload = (value: unknown) => {
+    if (typeof value !== "string") return value;
+    try {
+      return JSON.parse(value);
+    } catch {
+      try {
+        return JSON.parse(Buffer.from(value, "base64").toString("utf8"));
+      } catch {
+        return {};
+      }
+    }
+  };
+
+  let payload = parsePayload(req.body) as any;
+  payload = payload?.body ?? payload?.data ?? payload?.formData ?? payload;
+  payload = parsePayload(payload);
+
   const {
     id,
     title,
@@ -24,6 +38,16 @@ export const handleSaveReport: RequestHandler = async (req, res) => {
     recommendations,
     pdf_url,
   } = payload || {};
+
+  if (typeof title !== "string" || !title.trim()) {
+    res.status(400).json({ error: "Le titre du rapport est obligatoire" });
+    return;
+  }
+
+  if (typeof date !== "string" || !date.trim()) {
+    res.status(400).json({ error: "La date du rapport est obligatoire" });
+    return;
+  }
 
   const report = {
     ...(id ? { id } : {}),

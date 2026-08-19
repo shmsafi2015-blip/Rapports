@@ -1,5 +1,5 @@
-import { useRef, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import Layout from "@/components/Layout";
@@ -26,10 +26,23 @@ export default function ReportSuccess() {
   const navigate = useNavigate();
   const reportRef = useRef<HTMLDivElement>(null);
   const [isExporting, setIsExporting] = useState(false);
+  const { id } = useParams<{ id: string }>();
   const state = (location.state as ReportState) || {};
-  const report = state.report || {};
+  const [report, setReport] = useState<Record<string, unknown>>(state.report || {});
   const title = state.title || valueOf(report, "title");
   const logos = state.logos || [];
+
+  useEffect(() => {
+    if (!id || state.report) return;
+
+    fetch(`/api/reports/${id}`)
+      .then(async (response) => {
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || "تعذر تحميل التقرير");
+        setReport(result.report || {});
+      })
+      .catch((error) => console.error("Report details error:", error));
+  }, [id, state.report]);
 
   const downloadPdf = async () => {
     if (!reportRef.current) return;

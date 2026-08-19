@@ -3,7 +3,7 @@ import express from "express";
 import cors from "cors";
 import { handleGenerateSession } from "./routes/generate-session";
 import { handleSaveReport } from "./routes/save-report";
-import { handleListReports } from "./routes/list-reports";
+import { handleGetReport, handleListReports } from "./routes/list-reports";
 
 export function createServer() {
   const app = express();
@@ -32,6 +32,7 @@ export function createServer() {
   app.post("/api/generate-session", handleGenerateSession);
   app.post("/api/save-report", handleSaveReport);
   app.get("/api/reports", handleListReports);
+  app.get("/api/reports/:id", handleGetReport);
 
   return app;
 }
