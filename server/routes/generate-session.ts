@@ -2,9 +2,22 @@ import { RequestHandler } from "express";
 import { supabaseAdmin, ensureBucketExists } from "../lib/supabase";
 
 export const handleGenerateSession: RequestHandler = async (req, res) => {
+  const payload = req.body?.body && typeof req.body.body === "object"
+    ? req.body.body
+    : req.body;
   const {
     title, dateTime, targetAudience, objective, methodology, location, logos = []
-  } = req.body;
+  } = payload || {};
+
+  if (typeof title !== "string" || !title.trim()) {
+    res.status(400).json({ error: "Le titre de la séance est obligatoire" });
+    return;
+  }
+
+  if (typeof dateTime !== "string" || !dateTime.trim()) {
+    res.status(400).json({ error: "La date de la séance est obligatoire" });
+    return;
+  }
 
   try {
     // Ensure storage bucket exists for logos
