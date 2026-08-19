@@ -109,7 +109,7 @@ export default function AddReport() {
     try {
       const logoUrls = await Promise.all(
         logos.map(async (logo) => {
-          const uploadResponse = await fetch("/api/session-logo-upload", {
+          const uploadResponse = await fetch("/api/report-logo-upload", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ contentType: logo.type, bucket: "shm-reports" }),

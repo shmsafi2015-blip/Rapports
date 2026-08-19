@@ -10,9 +10,9 @@ const extensionFor = (contentType: string) => {
   return extensions[contentType];
 };
 
-export const handleCreateSessionLogoUpload: RequestHandler = async (req, res) => {
-  const { contentType, bucket = "shm-sessions" } = req.body || {};
-  const storageBucket = bucket === "shm-reports" || bucket === "shm-sessions" ? bucket : undefined;
+export const handleCreateReportLogoUpload: RequestHandler = async (req, res) => {
+  const { contentType, bucket } = req.body || {};
+  const storageBucket = bucket === "shm-reports" ? bucket : undefined;
   const extension = typeof contentType === "string" ? extensionFor(contentType) : undefined;
 
   if (!storageBucket || !extension) {
@@ -38,7 +38,7 @@ export const handleCreateSessionLogoUpload: RequestHandler = async (req, res) =>
 
     res.json({ path, token: data.token, publicUrl: publicUrl.publicUrl });
   } catch (error: any) {
-    console.error("Session logo upload preparation error:", error);
+    console.error("Report logo upload preparation error:", error);
     res.status(500).json({ error: error.message || "Impossible de préparer l’upload du logo" });
   }
 };

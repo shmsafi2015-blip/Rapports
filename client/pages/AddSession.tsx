@@ -1,14 +1,11 @@
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Layout from "@/components/Layout";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/lib/supabase";
-import { X, Upload, CheckCircle2 } from "lucide-react";
 
 export default function AddSession() {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   const [formData, setFormData] = useState({
@@ -20,9 +17,6 @@ export default function AddSession() {
     location: "",
   });
 
-  const [logos, setLogos] = useState<File[]>([]);
-  const [logoPreviews, setLogoPreviews] = useState<string[]>([]);
-
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -31,65 +25,12 @@ export default function AddSession() {
     }));
   };
 
-  const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []);
-    if (logos.length + files.length > 3) {
-      toast({
-        variant: "destructive",
-        title: "خطأ",
-        description: "يمكنك رفع 3 شعارات كحد أقصى.",
-      });
-      return;
-    }
-
-    const newLogos = [...logos, ...files];
-    setLogos(newLogos);
-
-    const newPreviews = files.map((file) => URL.createObjectURL(file));
-    setLogoPreviews((prev) => [...prev, ...newPreviews]);
-  };
-
-  const removeLogo = (index: number) => {
-    const newLogos = [...logos];
-    newLogos.splice(index, 1);
-    setLogos(newLogos);
-
-    const newPreviews = [...logoPreviews];
-    URL.revokeObjectURL(newPreviews[index]);
-    newPreviews.splice(index, 1);
-    setLogoPreviews(newPreviews);
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
 
     try {
-      const logoUrls = await Promise.all(
-        logos.map(async (logo) => {
-          const uploadResponse = await fetch("/api/session-logo-upload", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ contentType: logo.type }),
-          });
-          const uploadTarget = await uploadResponse.json();
-          if (!uploadResponse.ok) {
-            throw new Error(uploadTarget.error || "تعذر تجهيز رفع الشعار");
-          }
-
-          const { error } = await supabase.storage
-            .from("shm-sessions")
-            .uploadToSignedUrl(uploadTarget.path, uploadTarget.token, logo);
-          if (error) throw error;
-
-          return uploadTarget.publicUrl as string;
-        })
-      );
-
-      const payload = {
-        ...formData,
-        logoUrls,
-      };
+      const payload = { ...formData };
 
       const response = await fetch("/api/generate-session", {
         method: "POST",
@@ -138,49 +79,6 @@ export default function AddSession() {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-8">
-            {/* Logos Section */}
-            <div className="space-y-4 p-6 bg-gray-50/50 rounded-3xl border border-gray-100">
-              <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mr-1 mb-4">
-                تحميل الشعارات (3 كحد أقصى)
-              </label>
-              
-              <div className="flex flex-wrap gap-4">
-                {logoPreviews.map((preview, index) => (
-                  <div key={index} className="relative w-24 h-24 rounded-2xl overflow-hidden border-2 border-primary/20 group">
-                    <img src={preview} alt={`Logo preview ${index + 1}`} className="w-full h-full object-contain bg-white" />
-                    <button
-                      type="button"
-                      onClick={() => removeLogo(index)}
-                      className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                    >
-                      <X size={14} />
-                    </button>
-                  </div>
-                ))}
-                
-                {logos.length < 3 && (
-                  <button
-                    type="button"
-                    onClick={() => fileInputRef.current?.click()}
-                    className="w-24 h-24 rounded-2xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center text-gray-400 hover:border-primary/50 hover:text-primary transition-all bg-white"
-                  >
-                    <Upload size={20} className="mb-1" />
-                    <span className="text-[10px] font-bold">إضافة</span>
-                  </button>
-                )}
-              </div>
-              
-              <input
-                type="file"
-                ref={fileInputRef}
-                onChange={handleLogoChange}
-                accept="image/png,image/jpeg,image/jpg"
-                multiple
-                className="hidden"
-              />
-              <p className="text-[10px] text-gray-400 font-medium">الأنواع المسموحة: PNG, JPG, JPEG.</p>
-            </div>
-
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div className="space-y-2">
                 <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mr-1">عنوان الحصة (ماذا؟)</label>

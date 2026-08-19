@@ -4,7 +4,7 @@ import cors from "cors";
 import { handleGenerateSession } from "./routes/generate-session";
 import { handleSaveReport } from "./routes/save-report";
 import { handleGetReport, handleListReports } from "./routes/list-reports";
-import { handleCreateSessionLogoUpload } from "./routes/upload-session-logo";
+import { handleCreateReportLogoUpload } from "./routes/upload-session-logo";
 
 export function createServer() {
   const app = express();
@@ -30,7 +30,7 @@ export function createServer() {
     res.json({ message: ping });
   });
 
-  app.post("/api/session-logo-upload", handleCreateSessionLogoUpload);
+  app.post("/api/report-logo-upload", handleCreateReportLogoUpload);
   app.post("/api/generate-session", handleGenerateSession);
   app.post("/api/save-report", handleSaveReport);
   app.get("/api/reports", handleListReports);
