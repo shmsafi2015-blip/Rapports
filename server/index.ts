@@ -11,7 +11,7 @@ export function createServer() {
 
   // Middleware
   app.use(cors());
-  app.use(express.json({ limit: "50mb", type: "*/*" }));
+  app.use(express.json({ limit: "10mb", type: ["application/json", "application/*+json"] }));
   app.use(express.urlencoded({ extended: true, limit: "50mb" }));
   app.use((req, _res, next) => {
     if (typeof req.body === "string") {

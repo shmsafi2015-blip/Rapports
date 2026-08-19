@@ -163,8 +163,10 @@ export default function AddReport() {
 
       const response = await fetch("/api/save-report", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(reportData),
+        headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },
+        body: new URLSearchParams(
+          Object.entries(reportData).map(([key, value]) => [key, String(value ?? "")])
+        ),
       });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || "تعذر حفظ التقرير");

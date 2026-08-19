@@ -35,9 +35,9 @@ export default function AddSession() {
       const response = await fetch("/api/generate-session", {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
+          "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
         },
-        body: JSON.stringify(payload),
+        body: new URLSearchParams(payload),
       });
 
       if (!response.ok) {
