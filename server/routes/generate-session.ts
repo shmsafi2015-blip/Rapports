@@ -2,9 +2,24 @@ import { RequestHandler } from "express";
 import { supabaseAdmin, ensureBucketExists } from "../lib/supabase";
 
 export const handleGenerateSession: RequestHandler = async (req, res) => {
-  const payload = req.body?.body && typeof req.body.body === "object"
-    ? req.body.body
-    : req.body;
+  let payload = req.body;
+  if (typeof payload === "string") {
+    try {
+      payload = JSON.parse(payload);
+    } catch {
+      payload = {};
+    }
+  }
+
+  payload = payload?.body ?? payload?.data ?? payload?.formData ?? payload;
+  if (typeof payload === "string") {
+    try {
+      payload = JSON.parse(payload);
+    } catch {
+      payload = {};
+    }
+  }
+
   const {
     title, dateTime, targetAudience, objective, methodology, location, logos = []
   } = payload || {};
