@@ -168,12 +168,7 @@ export default function AddReport() {
       });
       navigate("/report-success", {
         state: {
-          report: {
-            ...reportData,
-            description: formData.description,
-            evaluationPositive: formData.evaluationPositive,
-            evaluationNegative: formData.evaluationNegative,
-          },
+          report: result.report || reportData,
           pdfUrl,
           title: formData.title,
           logos: logosData.map((logo) => `data:${logo.type};base64,${logo.data}`),

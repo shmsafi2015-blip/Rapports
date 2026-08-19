@@ -15,9 +15,10 @@ type ReportState = {
   report?: Record<string, unknown>;
 };
 
-const valueOf = (report: Record<string, unknown> | undefined, key: string, fallback = "غير محدد") => {
-  const value = report?.[key];
-  return value === undefined || value === null || value === "" ? fallback : String(value);
+const valueOf = (report: Record<string, unknown> | undefined, keys: string | string[], fallback = "غير محدد") => {
+  const candidates = Array.isArray(keys) ? keys : [keys];
+  const value = candidates.map((key) => report?.[key]).find((item) => item !== undefined && item !== null && item !== "");
+  return value === undefined ? fallback : String(value);
 };
 
 export default function ReportSuccess() {
@@ -107,9 +108,9 @@ export default function ReportSuccess() {
                     <TableRow label="الجهة المنظمة" value={valueOf(report, "category")} />
                     <TableRow label="عدد المشاركين" value={`${valueOf(report, "participants_boys", "0")} ذكور | ${valueOf(report, "participants_girls", "0")} إناث | ${valueOf(report, "leaders_count", "0")} قادة`} />
                     <TableRow label="الهدف من النشاط" value={valueOf(report, "objective")} />
-                    <TableRow label="سير النشاط" value={valueOf(report, "description")} />
-                    <TableRow label="النقاط الإيجابية" value={valueOf(report, "evaluationPositive")} />
-                    <TableRow label="النقاط السلبية" value={valueOf(report, "evaluationNegative")} />
+                    <TableRow label="سير النشاط" value={valueOf(report, ["description_reformulated", "description_original", "description"])} />
+                    <TableRow label="النقاط الإيجابية" value={valueOf(report, ["evaluation_positive", "evaluationPositive"])} />
+                    <TableRow label="النقاط السلبية" value={valueOf(report, ["evaluation_negative", "evaluationNegative"])} />
                     <TableRow label="التوصيات" value={valueOf(report, "recommendations")} />
                   </tbody>
                 </table>

@@ -50,8 +50,9 @@ export const handleGenerateSession: RequestHandler = async (req, res) => {
           location,
           target_audience: targetAudience,
           objective,
-          methodology,
-          logos: logoUrls.length > 0 ? logoUrls : null,
+          methodology_original: methodology,
+          methodology_reformulated: methodology,
+          pdf_url: null,
         }
       ])
       .select();

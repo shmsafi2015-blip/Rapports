@@ -23,7 +23,6 @@ export const handleSaveReport: RequestHandler = async (req, res) => {
     evaluation_negative,
     recommendations,
     pdf_url,
-    unit_logo,
   } = payload || {};
 
   const report = {
@@ -46,12 +45,13 @@ export const handleSaveReport: RequestHandler = async (req, res) => {
     evaluation_negative,
     recommendations,
     ...(typeof pdf_url === "string" && pdf_url.trim() ? { pdf_url } : {}),
-    unit_logo,
   };
 
-  const { error } = await supabaseAdmin
+  const { data: savedReport, error } = await supabaseAdmin
     .from("reports")
-    .upsert(report, { onConflict: "id" });
+    .upsert(report, { onConflict: "id" })
+    .select()
+    .single();
 
   if (error) {
     console.error("Report persistence error:", error);
@@ -59,5 +59,5 @@ export const handleSaveReport: RequestHandler = async (req, res) => {
     return;
   }
 
-  res.json({ success: true, report });
+  res.json({ success: true, report: savedReport });
 };
