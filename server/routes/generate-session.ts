@@ -46,6 +46,7 @@ export const handleGenerateSession: RequestHandler = async (req, res) => {
       .insert([
         {
           title,
+          date: dateTime,
           date_time: dateTime,
           location,
           target_audience: targetAudience,
