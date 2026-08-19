@@ -65,24 +65,30 @@ export default function AddSession() {
     setIsSubmitting(true);
 
     try {
-      // 1. Prepare logos as Base64 strings
-      const logosData = await Promise.all(
+      const logoUrls = await Promise.all(
         logos.map(async (logo) => {
-          const reader = new FileReader();
-          return new Promise<{ name: string; type: string; data: string }>((resolve) => {
-            reader.onload = (e) => {
-              const base64 = (e.target?.result as string).split(",")[1];
-              resolve({ name: logo.name, type: logo.type, data: base64 });
-            };
-            reader.readAsDataURL(logo);
+          const uploadResponse = await fetch("/api/session-logo-upload", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ contentType: logo.type }),
           });
+          const uploadTarget = await uploadResponse.json();
+          if (!uploadResponse.ok) {
+            throw new Error(uploadTarget.error || "تعذر تجهيز رفع الشعار");
+          }
+
+          const { error } = await supabase.storage
+            .from("shm-sessions")
+            .uploadToSignedUrl(uploadTarget.path, uploadTarget.token, logo);
+          if (error) throw error;
+
+          return uploadTarget.publicUrl as string;
         })
       );
 
-      // 2. Submit session data to backend
       const payload = {
         ...formData,
-        logos: logosData,
+        logoUrls,
       };
 
       const response = await fetch("/api/generate-session", {

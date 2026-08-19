@@ -10,14 +10,20 @@ export const handleSaveReport: RequestHandler = async (req, res) => {
       try {
         return JSON.parse(Buffer.from(value, "base64").toString("utf8"));
       } catch {
-        return {};
+        throw new Error("INVALID_REQUEST_BODY");
       }
     }
   };
 
-  let payload = parsePayload(req.body) as any;
-  payload = payload?.body ?? payload?.data ?? payload?.formData ?? payload;
-  payload = parsePayload(payload);
+  let payload: any;
+  try {
+    payload = parsePayload(req.body);
+    payload = payload?.body ?? payload?.data ?? payload?.formData ?? payload;
+    payload = parsePayload(payload);
+  } catch {
+    res.status(400).json({ error: "Corps de requête invalide ou trop volumineux" });
+    return;
+  }
 
   const {
     id,
