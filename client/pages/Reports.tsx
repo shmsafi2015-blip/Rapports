@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import Layout from "@/components/Layout";
 
 interface Report {
@@ -25,6 +26,7 @@ export default function Reports() {
   const [sessions, setSessions] = useState<Session[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<"reports" | "sessions">("reports");
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -89,7 +91,11 @@ export default function Reports() {
           {activeTab === "reports" ? (
             reports.length > 0 ? (
               reports.map((report) => (
-                <div key={report.id} className="shm-card group">
+                <div
+                  key={report.id}
+                  className="shm-card group cursor-pointer"
+                  onClick={() => navigate(`/report-success/${report.id}`)}
+                >
                   <div className="w-12 h-12 shm-gradient text-white rounded-xl flex items-center justify-center mb-6 shadow-md shadow-primary/10 group-hover:scale-110 transition-transform">
                     <span className="text-xl">📄</span>
                   </div>

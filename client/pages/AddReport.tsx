@@ -2,6 +2,7 @@ import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import Layout from "@/components/Layout";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/lib/supabase";
 import { cn } from "@/lib/utils";
 import { X, Upload, Image as ImageIcon } from "lucide-react";
 
@@ -106,21 +107,28 @@ export default function AddReport() {
     setIsSubmitting(true);
 
     try {
-      // 1. Prepare logos as Base64 strings
-      const logosData = await Promise.all(
+      const logoUrls = await Promise.all(
         logos.map(async (logo) => {
-          const reader = new FileReader();
-          return new Promise<{ name: string; type: string; data: string }>((resolve) => {
-            reader.onload = (e) => {
-              const base64 = (e.target?.result as string).split(",")[1];
-              resolve({ name: logo.name, type: logo.type, data: base64 });
-            };
-            reader.readAsDataURL(logo);
+          const uploadResponse = await fetch("/api/report-logo-upload", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ contentType: logo.type, bucket: "shm-reports" }),
           });
+          const uploadTarget = await uploadResponse.json();
+          if (!uploadResponse.ok) {
+            throw new Error(uploadTarget.error || "تعذر تجهيز رفع الشعار");
+          }
+
+          const { error } = await supabase.storage
+            .from("shm-reports")
+            .uploadToSignedUrl(uploadTarget.path, uploadTarget.token, logo);
+          if (error) throw error;
+
+          return uploadTarget.publicUrl as string;
         })
       );
 
-      // 2. Submit report data
+      // Submit report data
       const organizingCategoryLabels = selectedOrganizingCategories
         .map((id) => CATEGORIES.find((cat) => cat.id === id)?.label)
         .filter(Boolean)
@@ -151,13 +159,14 @@ export default function AddReport() {
         evaluation_negative: formData.evaluationNegative,
         recommendations: formData.recommendations,
         pdf_url: pdfUrl,
-        unit_logo: JSON.stringify(logosData.map((logo) => `data:${logo.type};base64,${logo.data}`)),
       };
 
       const response = await fetch("/api/save-report", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(reportData),
+        headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },
+        body: new URLSearchParams(
+          Object.entries(reportData).map(([key, value]) => [key, String(value ?? "")])
+        ),
       });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || "تعذر حفظ التقرير");
@@ -168,15 +177,10 @@ export default function AddReport() {
       });
       navigate("/report-success", {
         state: {
-          report: {
-            ...reportData,
-            description: formData.description,
-            evaluationPositive: formData.evaluationPositive,
-            evaluationNegative: formData.evaluationNegative,
-          },
+          report: result.report || reportData,
           pdfUrl,
           title: formData.title,
-          logos: logosData.map((logo) => `data:${logo.type};base64,${logo.data}`),
+          logos: logoUrls,
         },
       });
     } catch (error: any) {

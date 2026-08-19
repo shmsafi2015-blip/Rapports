@@ -3,14 +3,15 @@ import express from "express";
 import cors from "cors";
 import { handleGenerateSession } from "./routes/generate-session";
 import { handleSaveReport } from "./routes/save-report";
-import { handleListReports } from "./routes/list-reports";
+import { handleGetReport, handleListReports } from "./routes/list-reports";
+import { handleCreateReportLogoUpload } from "./routes/upload-session-logo";
 
 export function createServer() {
   const app = express();
 
   // Middleware
   app.use(cors());
-  app.use(express.json({ limit: "50mb", type: "*/*" }));
+  app.use(express.json({ limit: "10mb", type: ["application/json", "application/*+json"] }));
   app.use(express.urlencoded({ extended: true, limit: "50mb" }));
   app.use((req, _res, next) => {
     if (typeof req.body === "string") {
@@ -29,9 +30,11 @@ export function createServer() {
     res.json({ message: ping });
   });
 
+  app.post("/api/report-logo-upload", handleCreateReportLogoUpload);
   app.post("/api/generate-session", handleGenerateSession);
   app.post("/api/save-report", handleSaveReport);
   app.get("/api/reports", handleListReports);
+  app.get("/api/reports/:id", handleGetReport);
 
   return app;
 }

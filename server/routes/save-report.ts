@@ -2,9 +2,29 @@ import { RequestHandler } from "express";
 import { supabaseAdmin } from "../lib/supabase";
 
 export const handleSaveReport: RequestHandler = async (req, res) => {
-  const payload = req.body?.body && typeof req.body.body === "object"
-    ? req.body.body
-    : req.body;
+  const parsePayload = (value: unknown) => {
+    if (typeof value !== "string") return value;
+    try {
+      return JSON.parse(value);
+    } catch {
+      try {
+        return JSON.parse(Buffer.from(value, "base64").toString("utf8"));
+      } catch {
+        throw new Error("INVALID_REQUEST_BODY");
+      }
+    }
+  };
+
+  let payload: any;
+  try {
+    payload = parsePayload(req.body);
+    payload = payload?.body ?? payload?.data ?? payload?.formData ?? payload;
+    payload = parsePayload(payload);
+  } catch {
+    res.status(400).json({ error: "Corps de requête invalide ou trop volumineux" });
+    return;
+  }
+
   const {
     id,
     title,
@@ -23,8 +43,17 @@ export const handleSaveReport: RequestHandler = async (req, res) => {
     evaluation_negative,
     recommendations,
     pdf_url,
-    unit_logo,
   } = payload || {};
+
+  if (typeof title !== "string" || !title.trim()) {
+    res.status(400).json({ error: "Le titre du rapport est obligatoire" });
+    return;
+  }
+
+  if (typeof date !== "string" || !date.trim()) {
+    res.status(400).json({ error: "La date du rapport est obligatoire" });
+    return;
+  }
 
   const report = {
     ...(id ? { id } : {}),
@@ -46,12 +75,13 @@ export const handleSaveReport: RequestHandler = async (req, res) => {
     evaluation_negative,
     recommendations,
     ...(typeof pdf_url === "string" && pdf_url.trim() ? { pdf_url } : {}),
-    unit_logo,
   };
 
-  const { error } = await supabaseAdmin
+  const { data: savedReport, error } = await supabaseAdmin
     .from("reports")
-    .upsert(report, { onConflict: "id" });
+    .upsert(report, { onConflict: "id" })
+    .select()
+    .single();
 
   if (error) {
     console.error("Report persistence error:", error);
@@ -59,5 +89,5 @@ export const handleSaveReport: RequestHandler = async (req, res) => {
     return;
   }
 
-  res.json({ success: true, report });
+  res.json({ success: true, report: savedReport });
 };
