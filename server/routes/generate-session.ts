@@ -15,11 +15,24 @@ export const handleGenerateSession: RequestHandler = async (req, res) => {
     }
   };
 
+  const findPayload = (value: unknown, requiredKey: string, depth = 0): any => {
+    const parsed = parsePayload(value) as any;
+    if (!parsed || typeof parsed !== "object" || depth > 3) return parsed;
+    if (Object.prototype.hasOwnProperty.call(parsed, requiredKey)) return parsed;
+
+    for (const key of ["body", "data", "formData", "payload"]) {
+      if (parsed[key] !== undefined) {
+        const nested = findPayload(parsed[key], requiredKey, depth + 1);
+        if (nested && Object.prototype.hasOwnProperty.call(nested, requiredKey)) return nested;
+      }
+    }
+
+    return parsed;
+  };
+
   let payload: any;
   try {
-    payload = parsePayload(req.body);
-    payload = payload?.body ?? payload?.data ?? payload?.formData ?? payload;
-    payload = parsePayload(payload);
+    payload = findPayload(req.body, "title");
   } catch {
     res.status(400).json({ error: "Corps de requête invalide ou trop volumineux" });
     return;
